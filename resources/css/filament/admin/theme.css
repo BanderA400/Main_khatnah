@@ -1,0 +1,202 @@
+@import '/vendor/filament/filament/resources/css/theme.css';
+@import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Tajawal:wght@300;400;500;700;800&display=swap');
+
+@source '../../../../app/Filament/**/*.php';
+@source '../../../../resources/views/filament/**/*.blade.php';
+@source '../../../../vendor/filament/**/*.blade.php';
+
+@layer base {
+    :root {
+        --khatma-bg-start: #faf9fc;
+        --khatma-bg-end: #f3f1f6;
+        --khatma-surface: #ffffff;
+        --khatma-surface-soft: #faf9fc;
+        --khatma-border: #e8e5ed;
+        --khatma-title: #4c1d95;
+        --khatma-text: #2d2a38;
+        --khatma-muted: #7c7590;
+        --khatma-sidebar-glass: rgba(255, 255, 255, 0.92);
+        --khatma-shadow: 0 18px 44px rgba(45, 25, 92, 0.08);
+
+        --khatma-hifz-bg: #e4ccff;
+        --khatma-hifz-text: #4c1d95;
+        --khatma-hifz-from: #6d28d9;
+        --khatma-hifz-to: #8b47d4;
+        --khatma-review-bg: #d1fae5;
+        --khatma-review-text: #047857;
+        --khatma-review-from: #10b981;
+        --khatma-review-to: #34d399;
+        --khatma-tilawa-bg: #fef3c7;
+        --khatma-tilawa-text: #b45309;
+        --khatma-tilawa-from: #f59e0b;
+        --khatma-tilawa-to: #fcd34d;
+
+        --khatma-muted-soft: #a8a2b4;
+        --khatma-success-soft-bg: #ecfdf5;
+        --khatma-success-soft-text: #047857;
+        --khatma-warning-soft-bg: #fff7ed;
+        --khatma-warning-soft-text: #9a3412;
+    }
+
+    :root.dark,
+    .dark {
+        --khatma-bg-start: #1a1822;
+        --khatma-bg-end: #13111a;
+        --khatma-surface: #221f2d;
+        --khatma-surface-soft: #1f1b29;
+        --khatma-border: #353046;
+        --khatma-title: #e4ccff;
+        --khatma-text: #ddd7e8;
+        --khatma-muted: #a8a2b4;
+        --khatma-sidebar-glass: rgba(30, 26, 43, 0.82);
+        --khatma-shadow: 0 20px 50px rgba(0, 0, 0, 0.36);
+
+        --khatma-hifz-bg: rgba(109, 40, 217, 0.2);
+        --khatma-hifz-text: #c9a0f5;
+        --khatma-hifz-from: #8b47d4;
+        --khatma-hifz-to: #c9a0f5;
+        --khatma-review-bg: rgba(16, 185, 129, 0.2);
+        --khatma-review-text: #6ee7b7;
+        --khatma-review-from: #10b981;
+        --khatma-review-to: #6ee7b7;
+        --khatma-tilawa-bg: rgba(245, 158, 11, 0.2);
+        --khatma-tilawa-text: #fcd34d;
+        --khatma-tilawa-from: #f59e0b;
+        --khatma-tilawa-to: #fde68a;
+
+        --khatma-muted-soft: #8f8aa0;
+        --khatma-success-soft-bg: rgba(16, 185, 129, 0.2);
+        --khatma-success-soft-text: #6ee7b7;
+        --khatma-warning-soft-bg: rgba(245, 158, 11, 0.22);
+        --khatma-warning-soft-text: #fcd34d;
+    }
+}
+
+.fi-body {
+    background:
+        radial-gradient(circle at 10% -16%, rgba(109, 40, 217, 0.12) 0%, transparent 42%),
+        radial-gradient(circle at 88% -14%, rgba(16, 185, 129, 0.11) 0%, transparent 40%),
+        linear-gradient(180deg, var(--khatma-bg-start) 0%, var(--khatma-bg-end) 100%);
+    color: var(--khatma-text);
+    font-family: 'Tajawal', sans-serif;
+}
+
+.fi-sidebar,
+.fi-topbar {
+    background-color: var(--khatma-sidebar-glass);
+    border: 1px solid var(--khatma-border);
+    backdrop-filter: blur(8px);
+}
+
+.fi-main {
+    background: transparent;
+}
+
+.fi-logo {
+    filter: drop-shadow(0 4px 16px rgba(91, 33, 182, 0.22));
+}
+
+.fi-sidebar *,
+.fi-topbar * {
+    border-color: var(--khatma-border);
+}
+
+.fi-body .text-gray-500,
+.fi-body .text-gray-600,
+.fi-body .text-gray-700 {
+    color: var(--khatma-muted) !important;
+}
+
+.fi-header-heading,
+.fi-section-header-heading,
+.fi-modal-heading {
+    color: var(--khatma-title);
+    font-family: 'Amiri', serif !important;
+    font-weight: 700;
+}
+
+.fi-sidebar-item-btn,
+.fi-topbar-item-btn {
+    border-radius: 12px;
+    color: var(--khatma-text);
+    transition: background-color 160ms ease, color 160ms ease, box-shadow 160ms ease;
+}
+
+.fi-sidebar-item-btn:hover,
+.fi-topbar-item-btn:hover {
+    background-color: rgba(109, 40, 217, 0.1);
+}
+
+.fi-sidebar-item.fi-active > .fi-sidebar-item-btn,
+.fi-topbar-item.fi-active > .fi-topbar-item-btn {
+    background-color: rgba(109, 40, 217, 0.16);
+    box-shadow: inset 0 0 0 1px rgba(109, 40, 217, 0.24);
+    color: var(--khatma-title);
+}
+
+.fi-section,
+.fi-widget {
+    background-color: var(--khatma-surface);
+    border: 1px solid var(--khatma-border);
+    border-radius: 16px !important;
+    box-shadow: var(--khatma-shadow) !important;
+}
+
+.fi-section-content,
+.fi-ta-content {
+    background-color: var(--khatma-surface-soft);
+}
+
+.dark .fi-body {
+    background:
+        radial-gradient(circle at 12% -12%, rgba(109, 40, 217, 0.28) 0%, transparent 38%),
+        radial-gradient(circle at 94% -20%, rgba(16, 185, 129, 0.2) 0%, transparent 38%),
+        linear-gradient(180deg, var(--khatma-bg-start) 0%, var(--khatma-bg-end) 100%);
+}
+
+.dark .fi-sidebar-item-btn:hover,
+.dark .fi-topbar-item-btn:hover {
+    background-color: rgba(109, 40, 217, 0.25);
+}
+
+.dark .fi-sidebar-item.fi-active > .fi-sidebar-item-btn,
+.dark .fi-topbar-item.fi-active > .fi-topbar-item-btn {
+    background-color: rgba(109, 40, 217, 0.32);
+    box-shadow: inset 0 0 0 1px rgba(201, 160, 245, 0.38);
+    color: var(--khatma-title);
+}
+
+[dir="rtl"] .fi-sidebar-nav {
+    text-align: right;
+}
+
+.khatma-auth-home-link-wrap {
+    margin-top: 1rem;
+    text-align: center;
+}
+
+.khatma-auth-home-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    border-radius: 0.75rem;
+    border: 1px solid var(--khatma-border);
+    background: rgba(255, 255, 255, 0.74);
+    padding: 0.5rem 0.9rem;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--khatma-title);
+    text-decoration: none;
+    transition: all 160ms ease;
+}
+
+.khatma-auth-home-link:hover {
+    border-color: rgba(109, 40, 217, 0.45);
+    background: rgba(109, 40, 217, 0.09);
+    color: var(--khatma-primary-700, #4c1d95);
+}
+
+.dark .khatma-auth-home-link {
+    background: rgba(34, 31, 45, 0.82);
+}

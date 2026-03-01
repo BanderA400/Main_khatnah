@@ -1,0 +1,12 @@
+<svg width="260" height="72" viewBox="0 0 260 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <g transform="translate(4 6)">
+    <path d="M30 12C30 12 18 10 12 15C9 17.5 9 20 9 23V42C9 43.5 10 44.5 12 44C18 42.5 27 42 30 44" fill="#F3E8FF" stroke="#5B21B6" stroke-width="2" stroke-linecap="round"/>
+    <path d="M30 12C30 12 42 10 48 15C51 17.5 51 20 51 23V42C51 43.5 50 44.5 48 44C42 42.5 33 42 30 44" fill="#F3E8FF" stroke="#5B21B6" stroke-width="2" stroke-linecap="round"/>
+    <line x1="30" y1="12" x2="30" y2="44" stroke="#C9A0F5" stroke-width="1"/>
+    <path d="M30 6A24 24 0 0 1 52 20" stroke="#10B981" stroke-width="2.2" stroke-linecap="round"/>
+    <path d="M52 20A24 24 0 0 1 52 40" stroke="#F59E0B" stroke-width="2.2" stroke-linecap="round" opacity="0.7"/>
+    <circle cx="30" cy="6" r="2.2" fill="#10B981"/>
+    <circle cx="52" cy="20" r="1.9" fill="#F59E0B"/>
+  </g>
+  <text x="74" y="47" fill="#4C1D95" font-size="40" font-weight="700" font-family="Amiri, 'Noto Naskh Arabic', serif">ختمة</text>
+</svg>

@@ -1,0 +1,47 @@
+			@import '/vendor/filament/filament/resources/css/theme.css';
+
+@source '../../../../app/Filament/**/*.php';
+@source '../../../../resources/views/filament/**/*.blade.php';
+@source '../../../../vendor/filament/**/*.blade.php';
+
+@import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Tajawal:wght@300;400;500;700;800&display=swap');
+
+/*
+ * ختمة — Filament Theme
+ */
+
+@layer base {
+    :root {
+        --khatma-bg: #faf9fc;
+        --khatma-card: #ffffff;
+        --khatma-hifz-bg: #e4ccff;
+        --khatma-hifz-text: #4C1D95;
+        --khatma-review-bg: #d1fae5;
+        --khatma-review-text: #047857;
+        --khatma-tilawa-bg: #fef3c7;
+        --khatma-tilawa-text: #B45309;
+    }
+}
+
+/* === الخلفية الرئيسية === */
+.fi-body {
+    background-color: #faf9fc !important;
+}
+
+/* === خط العناوين === */
+.fi-header-heading,
+.fi-section-header-heading,
+.fi-mo'Amiri', serif !important;
+}
+
+/* === البطاقات === */
+.fi-section,
+.fi-widget {
+    border-radius: 16px !important;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06) !important;
+}
+
+/* === RTL Support === */
+[dir="rtl"] .fi-sidebar-nav {
+    text-align: right;
+}

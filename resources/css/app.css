@@ -1,0 +1,234 @@
+@import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Tajawal:wght@300;400;500;700;800&display=swap');
+
+@import "tailwindcss";
+
+@config "../../tailwind.config.js";
+
+@theme {
+    --color-primary-50: #f5f3ff;
+    --color-primary-100: #ede9fe;
+    --color-primary-200: #ddd6fe;
+    --color-primary-300: #c4b5fd;
+    --color-primary-400: #a78bfa;
+    --color-primary-500: #8b5cf6;
+    --color-primary-600: #7c3aed;
+    --color-primary-700: #6d28d9;
+
+    --color-secondary-50: #ecfdf5;
+    --color-secondary-200: #a7f3d0;
+    --color-secondary-400: #34d399;
+    --color-secondary-500: #10b981;
+    --color-secondary-600: #059669;
+
+    --color-accent-50: #fffbeb;
+    --color-accent-400: #fbbf24;
+    --color-accent-500: #f59e0b;
+    --color-accent-600: #d97706;
+}
+
+@layer base {
+    :root {
+        --khatma-primary-50: #f3e8ff;
+        --khatma-primary-100: #e4ccff;
+        --khatma-primary-500: #6d28d9;
+        --khatma-primary-600: #5b21b6;
+        --khatma-primary-700: #4c1d95;
+        --khatma-secondary-500: #10b981;
+        --khatma-accent-400: #f59e0b;
+        --khatma-neutral-50: #faf9fc;
+        --khatma-neutral-100: #f3f1f6;
+        --khatma-neutral-200: #e8e5ed;
+        --khatma-neutral-500: #7c7590;
+        --khatma-neutral-600: #5e586e;
+        --khatma-neutral-700: #443f52;
+        --khatma-neutral-800: #2d2a38;
+    }
+
+    html[dir='rtl'] {
+        direction: rtl;
+    }
+
+    body {
+        font-family: 'Tajawal', sans-serif;
+        background: var(--khatma-neutral-50);
+        color: var(--khatma-neutral-800);
+    }
+
+    h1,
+    h2,
+    h3 {
+        font-family: 'Amiri', serif;
+    }
+}
+
+@layer components {
+    .khatma-app-shell {
+        background:
+            radial-gradient(circle at 10% -14%, rgba(109, 40, 217, 0.12) 0%, transparent 40%),
+            radial-gradient(circle at 90% -12%, rgba(16, 185, 129, 0.1) 0%, transparent 40%),
+            linear-gradient(180deg, #faf9fc 0%, #f3f1f6 100%);
+    }
+
+    .khatma-auth-body {
+        min-height: 100vh;
+        background:
+            radial-gradient(circle at 12% -16%, rgba(109, 40, 217, 0.14) 0%, transparent 42%),
+            radial-gradient(circle at 88% -18%, rgba(16, 185, 129, 0.12) 0%, transparent 38%),
+            linear-gradient(180deg, #faf9fc 0%, #f3f1f6 100%);
+    }
+
+    .khatma-auth-shell {
+        min-height: 100vh;
+        width: min(1100px, 100%);
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: 1fr;
+        align-items: center;
+        gap: 1rem;
+        padding: 1.5rem 1rem;
+    }
+
+    .khatma-auth-panel {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        padding: 1.5rem;
+        border-radius: 1rem;
+        border: 1px solid rgba(212, 208, 220, 0.9);
+        background: rgba(255, 255, 255, 0.68);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
+        backdrop-filter: blur(6px);
+    }
+
+    .khatma-auth-logo-wrap {
+        display: inline-flex;
+        width: fit-content;
+        align-self: flex-start;
+    }
+
+    .khatma-auth-title {
+        font-size: clamp(1.65rem, 2.1vw + 1rem, 2.15rem);
+        line-height: 1.25;
+        color: var(--khatma-neutral-800);
+    }
+
+    .khatma-auth-subtitle {
+        color: var(--khatma-neutral-600);
+        font-size: 1.02rem;
+        font-weight: 500;
+        line-height: 1.7;
+    }
+
+    .khatma-auth-highlights {
+        display: grid;
+        gap: 0.65rem;
+        font-size: 0.95rem;
+        color: var(--khatma-neutral-700);
+        line-height: 1.65;
+    }
+
+    .khatma-auth-highlights li {
+        position: relative;
+        padding-inline-start: 1.35rem;
+    }
+
+    .khatma-auth-highlights li::before {
+        content: '';
+        position: absolute;
+        inset-inline-start: 0.25rem;
+        top: 0.52rem;
+        width: 0.5rem;
+        height: 0.5rem;
+        border-radius: 9999px;
+        background: linear-gradient(135deg, var(--khatma-secondary-500), var(--khatma-primary-500));
+    }
+
+    .khatma-auth-card {
+        width: 100%;
+        max-width: 34rem;
+        background: rgba(255, 255, 255, 0.94);
+        border: 1px solid var(--khatma-neutral-200);
+        border-radius: 1rem;
+        box-shadow: 0 22px 52px rgba(76, 29, 149, 0.1);
+        backdrop-filter: blur(8px);
+    }
+
+    .khatma-auth-form-head {
+        margin-bottom: 1.25rem;
+    }
+
+    .khatma-auth-form-title {
+        font-size: 1.65rem;
+        color: var(--khatma-neutral-800);
+    }
+
+    .khatma-auth-form-note {
+        margin-top: 0.3rem;
+        font-size: 0.95rem;
+        color: var(--khatma-neutral-600);
+        line-height: 1.65;
+    }
+
+    .khatma-auth-link {
+        color: var(--khatma-primary-600);
+        font-size: 0.9rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: color 160ms ease-in-out;
+    }
+
+    .khatma-auth-link:hover {
+        color: var(--khatma-primary-700);
+        text-decoration: underline;
+        text-underline-offset: 2px;
+    }
+
+    @media (min-width: 1024px) {
+        .khatma-auth-shell {
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+            gap: 1.5rem;
+            padding-inline: 1.5rem;
+        }
+
+        .khatma-auth-panel {
+            min-height: 37rem;
+            justify-content: center;
+            padding: 2rem;
+        }
+    }
+
+    @media (prefers-color-scheme: dark) {
+        .khatma-auth-body {
+            background:
+                radial-gradient(circle at 12% -16%, rgba(139, 71, 212, 0.2) 0%, transparent 42%),
+                radial-gradient(circle at 88% -18%, rgba(16, 185, 129, 0.18) 0%, transparent 38%),
+                linear-gradient(180deg, #1a1822 0%, #0f0e15 100%);
+        }
+
+        .khatma-auth-panel,
+        .khatma-auth-card {
+            background: rgba(26, 24, 34, 0.84);
+            border-color: rgba(124, 117, 144, 0.38);
+            box-shadow: 0 20px 56px rgba(5, 4, 8, 0.45);
+        }
+
+        .khatma-auth-title,
+        .khatma-auth-form-title {
+            color: #f3f1f6;
+        }
+
+        .khatma-auth-subtitle,
+        .khatma-auth-form-note,
+        .khatma-auth-highlights {
+            color: #d4d0dc;
+        }
+
+        .khatma-auth-link {
+            color: #c9a0f5;
+        }
+
+        .khatma-auth-link:hover {
+            color: #e4ccff;
+        }
+    }
+}

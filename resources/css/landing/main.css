@@ -1,0 +1,70 @@
+/* resources/css/landing/main.css */
+
+/* Define CSS Variables based on the Tailwind config we used */
+:root {
+    --color-primary-50: #f5f3ff;
+    --color-primary-100: #ede9fe;
+    --color-primary-200: #ddd6fe;
+    --color-primary-300: #c4b5fd;
+    --color-primary-400: #a78bfa;
+    --color-primary-500: #8b5cf6;
+    --color-primary-600: #7c3aed;
+    --color-primary-700: #6d28d9;
+    
+    --color-secondary-50: #ecfdf5;
+    --color-secondary-400: #34d399;
+    --color-secondary-500: #10b981;
+    --color-secondary-600: #059669;
+    
+    --color-accent-50: #fffbeb;
+    --color-accent-400: #fbbf24;
+    --color-accent-500: #f59e0b;
+    --color-accent-600: #d97706;
+}
+
+/* Base custom font classes */
+.font-amiri {
+    font-family: 'El Messiri', serif;
+}
+.font-sans {
+    font-family: 'IBM Plex Sans Arabic', sans-serif;
+}
+
+/* Smooth scrolling */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Animations */
+@keyframes fadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-fade-up {
+    animation: fadeUp 0.8s ease-out forwards;
+    opacity: 0;
+}
+
+/* For JS Scroll Reveal */
+.reveal-up {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: all 0.8s ease-out;
+}
+.reveal-up.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Progress Bar custom property for animation */
+.progress-animated {
+    width: 0%;
+    transition: width 1.5s cubic-bezier(0.16, 1, 0.3, 1);
+}

@@ -29,7 +29,7 @@ class AdminPanelProvider extends PanelProvider
             ->login()
             ->registration()
             ->passwordReset()
-            ->emailVerification(isRequired: false)
+            ->emailVerification(isRequired: true)
             ->viteTheme('resources/css/filament/admin/theme.css')
             ->renderHook(
                 PanelsRenderHook::AUTH_LOGIN_FORM_AFTER,

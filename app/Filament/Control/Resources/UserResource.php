@@ -7,6 +7,8 @@ use App\Filament\Control\Resources\UserResource\Pages;
 use App\Models\User;
 use App\Support\AppSettings;
 use Filament\Actions\Action;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
 use Filament\Forms;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
@@ -209,13 +211,43 @@ class UserResource extends Resource
                 \Filament\Actions\EditAction::make()
                     ->label('تعديل'),
 
-                \Filament\Actions\DeleteAction::make()
+                DeleteAction::make()
                     ->label('حذف')
+                    ->before(function (DeleteAction $action, User $record): void {
+                        $blockReason = static::resolveSingleDeleteBlockReason($record);
+
+                        if (! is_string($blockReason)) {
+                            return;
+                        }
+
+                        Notification::make()
+                            ->title('إجراء مرفوض')
+                            ->body($blockReason)
+                            ->danger()
+                            ->send();
+
+                        $action->halt();
+                    })
                     ->visible(fn (User $record): bool => (int) $record->id !== (int) auth()->id()),
             ])
             ->bulkActions([
                 \Filament\Actions\BulkActionGroup::make([
-                    \Filament\Actions\DeleteBulkAction::make(),
+                    DeleteBulkAction::make()
+                        ->before(function (DeleteBulkAction $action, $records): void {
+                            $blockReason = static::resolveBulkDeleteBlockReason($records);
+
+                            if (! is_string($blockReason)) {
+                                return;
+                            }
+
+                            Notification::make()
+                                ->title('إجراء مرفوض')
+                                ->body($blockReason)
+                                ->danger()
+                                ->send();
+
+                            $action->halt();
+                        }),
                 ]),
             ])
             ->emptyStateHeading('لا يوجد مستخدمون')
@@ -242,5 +274,61 @@ class UserResource extends Resource
             ->withMax([
                 'dailyRecords as last_completed_at' => fn (Builder $query): Builder => $query->where('is_completed', true),
             ], 'completed_at');
+    }
+
+    private static function resolveSingleDeleteBlockReason(User $record): ?string
+    {
+        if ((int) $record->id === (int) auth()->id()) {
+            return 'لا يمكنك حذف حسابك الحالي.';
+        }
+
+        if (! $record->is_admin) {
+            return null;
+        }
+
+        $adminsCount = User::query()->where('is_admin', true)->count();
+
+        if ($adminsCount <= 1) {
+            return 'لا يمكن حذف آخر حساب أدمن في النظام.';
+        }
+
+        return null;
+    }
+
+    private static function resolveBulkDeleteBlockReason(mixed $records): ?string
+    {
+        $recordsCollection = collect($records)
+            ->filter(fn ($record): bool => $record instanceof User)
+            ->values();
+
+        if ($recordsCollection->isEmpty()) {
+            return null;
+        }
+
+        $authId = (int) auth()->id();
+
+        $includesCurrentUser = $recordsCollection->contains(
+            fn (User $record): bool => (int) $record->id === $authId,
+        );
+
+        if ($includesCurrentUser) {
+            return 'لا يمكنك حذف حسابك الحالي ضمن الحذف الجماعي.';
+        }
+
+        $selectedAdminsCount = $recordsCollection
+            ->filter(fn (User $record): bool => (bool) $record->is_admin)
+            ->count();
+
+        if ($selectedAdminsCount === 0) {
+            return null;
+        }
+
+        $adminsCount = User::query()->where('is_admin', true)->count();
+
+        if (($adminsCount - $selectedAdminsCount) <= 0) {
+            return 'لا يمكن حذف جميع حسابات الأدمن من النظام.';
+        }
+
+        return null;
     }
 }

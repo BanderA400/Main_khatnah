@@ -2,58 +2,30 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\HistoryExportController;
-use App\Models\LandingVisit;
+use App\Http\Controllers\ControlRecoveryController;
 use App\Support\AppSettings;
+use App\Support\LandingVisitTracker;
 use Filament\Auth\Http\Controllers\EmailVerificationController as FilamentEmailVerificationController;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Str;
 
 Route::get('/', function (Request $request) {
     $totalVisits = 0;
     $todayUniqueVisitors = 0;
-    $landingContactEmail = AppSettings::get(
-        AppSettings::KEY_LANDING_CONTACT_EMAIL,
-        'contact@khatma.app',
-    );
-    $landingXUrl = AppSettings::get(
-        AppSettings::KEY_LANDING_X_URL,
-        'https://x.com/khatma_app',
-    );
-    $landingShowVisitCounter = (bool) AppSettings::get(
-        AppSettings::KEY_LANDING_SHOW_VISIT_COUNTER,
-        true,
-    );
+    $landingSettings = AppSettings::getMany([
+        AppSettings::KEY_LANDING_CONTACT_EMAIL => 'contact@khatma.app',
+        AppSettings::KEY_LANDING_X_URL => 'https://x.com/khatma_app',
+        AppSettings::KEY_LANDING_SHOW_VISIT_COUNTER => true,
+    ]);
+    $landingContactEmail = $landingSettings[AppSettings::KEY_LANDING_CONTACT_EMAIL] ?? null;
+    $landingXUrl = $landingSettings[AppSettings::KEY_LANDING_X_URL] ?? null;
+    $landingShowVisitCounter = (bool) ($landingSettings[AppSettings::KEY_LANDING_SHOW_VISIT_COUNTER] ?? true);
 
     if ($landingShowVisitCounter) {
-        $visitorId = $request->cookie('khatma_vid');
-
-        if (! is_string($visitorId) || $visitorId === '') {
-            $visitorId = (string) Str::uuid();
-            Cookie::queue(cookie('khatma_vid', $visitorId, 60 * 24 * 365));
-        }
-
         try {
-            $today = now()->toDateString();
-            $fingerprint = hash('sha256', $visitorId);
-
-            $alreadyVisitedToday = LandingVisit::query()
-                ->where('visited_on', $today)
-                ->where('fingerprint', $fingerprint)
-                ->exists();
-
-            LandingVisit::query()->create([
-                'fingerprint' => $fingerprint,
-                'visited_on' => $today,
-                'is_unique' => ! $alreadyVisitedToday,
-            ]);
-
-            $totalVisits = LandingVisit::query()->count();
-            $todayUniqueVisitors = LandingVisit::query()
-                ->where('visited_on', $today)
-                ->where('is_unique', true)
-                ->count();
+            $metrics = LandingVisitTracker::track($request);
+            $totalVisits = (int) ($metrics['totalVisits'] ?? 0);
+            $todayUniqueVisitors = (int) ($metrics['todayUniqueVisitors'] ?? 0);
         } catch (\Throwable $exception) {
             report($exception);
         }
@@ -97,6 +69,15 @@ Route::get('/admin/password-reset/reset', function (Request $request) {
 Route::redirect('/admin/email-verification/prompt', '/verify-email');
 Route::get('/admin/email-verification/verify/{id}/{hash}', FilamentEmailVerificationController::class)
     ->middleware(['auth', 'signed', 'throttle:6,1']);
+
+Route::middleware('guest')->group(function (): void {
+    Route::get('/control/recovery', [ControlRecoveryController::class, 'show'])
+        ->name('control.recovery.show');
+
+    Route::post('/control/recovery', [ControlRecoveryController::class, 'store'])
+        ->middleware('throttle:6,1')
+        ->name('control.recovery.store');
+});
 
 Route::get('/dashboard', function () {
     return redirect()->route('filament.admin.pages.dashboard');

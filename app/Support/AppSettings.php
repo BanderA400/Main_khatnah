@@ -4,6 +4,7 @@ namespace App\Support;
 
 use App\Models\AppSetting;
 use Illuminate\Database\QueryException;
+use JsonException;
 
 class AppSettings
 {
@@ -27,17 +28,19 @@ class AppSettings
 
     public static function get(string $key, mixed $default = null): mixed
     {
+        $fallback = $default ?? (self::DEFAULTS[$key] ?? null);
+
         try {
             $setting = AppSetting::query()->find($key);
         } catch (QueryException) {
-            return $default ?? (self::DEFAULTS[$key] ?? null);
+            return $fallback;
         }
 
         if (! $setting) {
-            return $default ?? (self::DEFAULTS[$key] ?? null);
+            return $fallback;
         }
 
-        return self::decode($setting->value, $setting->type);
+        return self::decodeWithFallback($setting->value, $setting->type, $fallback);
     }
 
     public static function getMany(array $defaults = []): array
@@ -64,7 +67,7 @@ class AppSettings
                 continue;
             }
 
-            $values[$key] = self::decode($row->value, $row->type);
+            $values[$key] = self::decodeWithFallback($row->value, $row->type, $fallback);
         }
 
         return $values;
@@ -124,5 +127,14 @@ class AppSettings
             'json' => $value ? json_decode($value, true, 512, JSON_THROW_ON_ERROR) : [],
             default => $value,
         };
+    }
+
+    private static function decodeWithFallback(?string $value, string $type, mixed $fallback): mixed
+    {
+        try {
+            return self::decode($value, $type);
+        } catch (JsonException) {
+            return $fallback;
+        }
     }
 }

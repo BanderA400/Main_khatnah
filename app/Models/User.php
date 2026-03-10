@@ -75,6 +75,15 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmailContr
         return true;
     }
 
+    public function hasVerifiedEmail(): bool
+    {
+        if ((bool) $this->is_admin) {
+            return true;
+        }
+
+        return ! is_null($this->email_verified_at);
+    }
+
     // ==================
     // العلاقات
     // ==================

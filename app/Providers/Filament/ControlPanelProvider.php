@@ -25,7 +25,7 @@ class ControlPanelProvider extends PanelProvider
             ->path('control')
             ->login()
             ->passwordReset()
-            ->emailVerification(isRequired: false)
+            ->emailVerification(isRequired: true)
             ->viteTheme('resources/css/filament/admin/theme.css')
             ->brandName('ختمة | مركز التحكم')
             ->brandLogo(asset('images/brand/khatma-logo-light.svg'))

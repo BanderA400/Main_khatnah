@@ -32,6 +32,14 @@ class Dashboard extends Page
 
     public string $calendarMonth = '';
 
+    private array $activeKhatmasByUser = [];
+
+    private array $streakByUser = [];
+
+    private array $commitmentRateByUser = [];
+
+    private ?Collection $orderedSurahs = null;
+
     public function mount(): void
     {
         $this->calendarMonth = now()->startOfMonth()->toDateString();
@@ -44,9 +52,7 @@ class Dashboard extends Page
     {
         $userId = auth()->id();
 
-        $activeKhatmas = Khatma::where('user_id', $userId)
-            ->where('status', KhatmaStatus::Active)
-            ->get();
+        $activeKhatmas = $this->getActiveKhatmasForUser((int) $userId);
 
         // الصفحات المنجزة والمتبقية
         $totalCompleted = $activeKhatmas->sum('completed_pages');
@@ -54,10 +60,10 @@ class Dashboard extends Page
         $totalRemaining = $totalPages - $totalCompleted;
 
         // الـ Streak
-        $streak = $this->calculateStreak($userId);
+        $streak = $this->getStreakForUser((int) $userId);
 
         // نسبة الالتزام
-        $commitmentRate = $this->calculateCommitmentRate($userId);
+        $commitmentRate = $this->getCommitmentRateForUser((int) $userId);
 
         $nearestEndDateModel = $activeKhatmas
             ->filter(fn (Khatma $khatma): bool => $khatma->expected_end_date !== null)
@@ -84,17 +90,22 @@ class Dashboard extends Page
         $userId = auth()->id();
         $today = Carbon::today();
 
-        $activeKhatmas = Khatma::where('user_id', $userId)
-            ->where('status', KhatmaStatus::Active)
-            ->get();
+        $activeKhatmas = $this->getActiveKhatmasForUser((int) $userId);
+
+        if ($activeKhatmas->isEmpty()) {
+            return [];
+        }
+
+        $todayDate = $today->toDateString();
+        $tomorrowDate = $today->copy()->addDay()->toDateString();
+
         $todayCompletedByKhatma = DailyRecord::whereIn('khatma_id', $activeKhatmas->pluck('id'))
-            ->whereDate('date', $today)
+            ->where('date', '>=', $todayDate)
+            ->where('date', '<', $tomorrowDate)
             ->selectRaw('khatma_id, SUM(pages_count) as total_pages')
             ->groupBy('khatma_id')
             ->pluck('total_pages', 'khatma_id');
-        $surahs = Surah::query()
-            ->orderBy('start_page')
-            ->get(['start_page', 'end_page', 'name_arabic']);
+        $surahs = $this->getOrderedSurahs();
 
         $wirds = [];
 
@@ -269,8 +280,8 @@ class Dashboard extends Page
             ->where('status', KhatmaStatus::Active)
             ->count();
 
-        $streak = $this->calculateStreak($userId);
-        $commitmentRate = $this->calculateCommitmentRate($userId);
+        $streak = $this->getStreakForUser($userId);
+        $commitmentRate = $this->getCommitmentRateForUser($userId);
 
         return [
             [
@@ -553,8 +564,12 @@ class Dashboard extends Page
 
     private function getTodayCompletedPages(int $khatmaId, Carbon $today): int
     {
+        $todayDate = $today->toDateString();
+        $tomorrowDate = $today->copy()->addDay()->toDateString();
+
         return (int) DailyRecord::where('khatma_id', $khatmaId)
-            ->whereDate('date', $today)
+            ->where('date', '>=', $todayDate)
+            ->where('date', '<', $tomorrowDate)
             ->sum('pages_count');
     }
 
@@ -716,6 +731,47 @@ class Dashboard extends Page
         }
 
         return '—';
+    }
+
+    private function getActiveKhatmasForUser(int $userId): Collection
+    {
+        if (! isset($this->activeKhatmasByUser[$userId])) {
+            $this->activeKhatmasByUser[$userId] = Khatma::query()
+                ->where('user_id', $userId)
+                ->where('status', KhatmaStatus::Active)
+                ->get();
+        }
+
+        return $this->activeKhatmasByUser[$userId];
+    }
+
+    private function getOrderedSurahs(): Collection
+    {
+        if ($this->orderedSurahs === null) {
+            $this->orderedSurahs = Surah::query()
+                ->orderBy('start_page')
+                ->get(['start_page', 'end_page', 'name_arabic']);
+        }
+
+        return $this->orderedSurahs;
+    }
+
+    private function getStreakForUser(int $userId): int
+    {
+        if (! array_key_exists($userId, $this->streakByUser)) {
+            $this->streakByUser[$userId] = $this->calculateStreak($userId);
+        }
+
+        return $this->streakByUser[$userId];
+    }
+
+    private function getCommitmentRateForUser(int $userId): float
+    {
+        if (! array_key_exists($userId, $this->commitmentRateByUser)) {
+            $this->commitmentRateByUser[$userId] = $this->calculateCommitmentRate($userId);
+        }
+
+        return $this->commitmentRateByUser[$userId];
     }
 
     /**

@@ -61,4 +61,24 @@ class EmailVerificationTest extends TestCase
 
         $this->assertFalse($user->fresh()->hasVerifiedEmail());
     }
+
+    public function test_unverified_user_is_redirected_to_admin_verification_prompt_when_opening_admin_panel(): void
+    {
+        $user = User::factory()->unverified()->create();
+
+        $this->actingAs($user)
+            ->get('/app/dashboard')
+            ->assertRedirect(route('filament.admin.auth.email-verification.prompt'));
+    }
+
+    public function test_unverified_admin_user_can_open_control_panel_without_email_verification(): void
+    {
+        $user = User::factory()->unverified()->create([
+            'is_admin' => true,
+        ]);
+
+        $this->actingAs($user)
+            ->get('/control/dashboard')
+            ->assertOk();
+    }
 }

@@ -29,12 +29,19 @@ class EditKhatma extends EditRecord
 
     protected function mutateFormDataBeforeSave(array $data): array
     {
-        if ((int) ($this->record->completed_pages ?? 0) > 0) {
-            $data['direction'] = static::stateValue($this->record->direction);
-            $data['scope'] = static::stateValue($this->record->scope);
-            $data['start_page'] = (int) $this->record->start_page;
-            $data['end_page'] = (int) $this->record->end_page;
-            $data['total_pages'] = (int) $this->record->total_pages;
+        $record = $this->record;
+        $hasProgress = (int) ($record->completed_pages ?? 0) > 0;
+
+        // لا نثق بأي قيم حساسة قادمة من الطلب.
+        $data['user_id'] = (int) $record->user_id;
+        $data['completed_pages'] = (int) $record->completed_pages;
+
+        if ($hasProgress) {
+            $data['direction'] = static::stateValue($record->direction);
+            $data['scope'] = static::stateValue($record->scope);
+            $data['start_page'] = (int) $record->start_page;
+            $data['end_page'] = (int) $record->end_page;
+            $data['total_pages'] = (int) $record->total_pages;
         }
 
         $startPage = (int) ($data['start_page'] ?? 1);
@@ -80,10 +87,12 @@ class EditKhatma extends EditRecord
 
         $direction = static::stateValue($data['direction'] ?? KhatmaDirection::Forward->value);
 
-        if ((int) ($data['completed_pages'] ?? 0) === 0) {
+        if (! $hasProgress) {
             $data['current_page'] = $direction === KhatmaDirection::Backward->value
                 ? $endPage
                 : $startPage;
+        } else {
+            $data['current_page'] = (int) $record->current_page;
         }
 
         return $data;

@@ -11,7 +11,7 @@ use App\Support\AppSettings;
 use Carbon\Carbon;
 use Filament\Pages\Page;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 class Dashboard extends Page
 {
@@ -67,6 +67,8 @@ class Dashboard extends Page
     {
         [$startDate, $endDate, $rangeLabel] = $this->resolveDateRangeForPeriod();
         $today = Carbon::today();
+        $todayDate = $today->toDateString();
+        $tomorrowDate = $today->copy()->addDay()->toDateString();
 
         $totalUsers = (int) User::query()->count();
         $newUsers = (int) $this->applyDateRange(
@@ -74,6 +76,7 @@ class Dashboard extends Page
             'created_at',
             $startDate,
             $endDate,
+            false,
         )->count();
 
         $activeUsers = (int) $this->applyDateRange(
@@ -81,32 +84,40 @@ class Dashboard extends Page
             'date',
             $startDate,
             $endDate,
+            true,
         )
             ->distinct('user_id')
             ->count('user_id');
 
         $activeUsersToday = (int) DailyRecord::query()
             ->where('is_completed', true)
-            ->whereDate('date', $today)
+            ->where('date', '>=', $todayDate)
+            ->where('date', '<', $tomorrowDate)
             ->distinct('user_id')
             ->count('user_id');
 
         $dormantUsers7 = (int) User::query()
             ->whereDoesntHave('dailyRecords', function (Builder $query) use ($today): void {
                 $query->where('is_completed', true)
-                    ->whereDate('date', '>=', $today->copy()->subDays(6));
+                    ->where('date', '>=', $today->copy()->subDays(6)->toDateString());
             })
             ->count();
 
-        $totalKhatmas = (int) Khatma::query()->count();
-        $activeKhatmas = (int) Khatma::query()->where('status', KhatmaStatus::Active)->count();
-        $completedKhatmas = (int) Khatma::query()->where('status', KhatmaStatus::Completed)->count();
-        $pausedKhatmas = (int) Khatma::query()->where('status', KhatmaStatus::Paused)->count();
+        $khatmaCounts = Khatma::query()
+            ->selectRaw('status, COUNT(*) as total')
+            ->groupBy('status')
+            ->pluck('total', 'status');
+        $totalKhatmas = (int) array_sum($khatmaCounts->all());
+        $activeKhatmas = (int) ($khatmaCounts[KhatmaStatus::Active->value] ?? 0);
+        $completedKhatmas = (int) ($khatmaCounts[KhatmaStatus::Completed->value] ?? 0);
+        $pausedKhatmas = (int) ($khatmaCounts[KhatmaStatus::Paused->value] ?? 0);
+
         $newKhatmas = (int) $this->applyDateRange(
             Khatma::query(),
             'created_at',
             $startDate,
             $endDate,
+            false,
         )->count();
 
         $completedPages = (int) $this->applyDateRange(
@@ -114,6 +125,7 @@ class Dashboard extends Page
             'date',
             $startDate,
             $endDate,
+            true,
         )
             ->sum('pages_count');
 
@@ -152,10 +164,11 @@ class Dashboard extends Page
     {
         $start = Carbon::today()->subDays(6);
         $end = Carbon::today();
+        $startDate = $start->toDateString();
+        $endDate = $end->toDateString();
 
         $newUsersByDate = User::query()
-            ->whereDate('created_at', '>=', $start)
-            ->whereDate('created_at', '<=', $end)
+            ->whereBetween('created_at', [$start->copy()->startOfDay(), $end->copy()->endOfDay()])
             ->selectRaw('DATE(created_at) as day, COUNT(*) as total')
             ->groupBy('day')
             ->orderBy('day')
@@ -163,8 +176,7 @@ class Dashboard extends Page
             ->mapWithKeys(fn ($row): array => [$row->day => (int) $row->total]);
 
         $newKhatmasByDate = Khatma::query()
-            ->whereDate('created_at', '>=', $start)
-            ->whereDate('created_at', '<=', $end)
+            ->whereBetween('created_at', [$start->copy()->startOfDay(), $end->copy()->endOfDay()])
             ->selectRaw('DATE(created_at) as day, COUNT(*) as total')
             ->groupBy('day')
             ->orderBy('day')
@@ -173,8 +185,8 @@ class Dashboard extends Page
 
         $completedByDate = DailyRecord::query()
             ->where('is_completed', true)
-            ->whereDate('date', '>=', $start)
-            ->whereDate('date', '<=', $end)
+            ->where('date', '>=', $startDate)
+            ->where('date', '<=', $endDate)
             ->selectRaw('date as day, COUNT(DISTINCT khatma_id) as total')
             ->groupBy('day')
             ->orderBy('day')
@@ -280,11 +292,12 @@ class Dashboard extends Page
         $userIds = $users->pluck('id');
         $today = Carbon::today();
 
-        $khatmasByUser = Khatma::query()
+        $khatmaStatsByUser = Khatma::query()
             ->whereIn('user_id', $userIds)
-            ->selectRaw('user_id, COUNT(*) as total')
+            ->selectRaw('user_id, COUNT(*) as total, MIN(start_date) as first_start')
             ->groupBy('user_id')
-            ->pluck('total', 'user_id');
+            ->get()
+            ->keyBy('user_id');
 
         $lastCompletedByUser = DailyRecord::query()
             ->where('is_completed', true)
@@ -294,13 +307,6 @@ class Dashboard extends Page
             ->get()
             ->mapWithKeys(fn ($row): array => [$row->user_id => $row->last_completed_at]);
 
-        $firstStartByUser = Khatma::query()
-            ->whereIn('user_id', $userIds)
-            ->selectRaw('user_id, MIN(start_date) as first_start')
-            ->groupBy('user_id')
-            ->get()
-            ->mapWithKeys(fn ($row): array => [$row->user_id => $row->first_start]);
-
         $completedDaysByUser = DailyRecord::query()
             ->where('is_completed', true)
             ->whereIn('user_id', $userIds)
@@ -309,9 +315,8 @@ class Dashboard extends Page
             ->pluck('completed_days', 'user_id');
 
         return $users->map(function (User $user) use (
-            $khatmasByUser,
+            $khatmaStatsByUser,
             $lastCompletedByUser,
-            $firstStartByUser,
             $completedDaysByUser,
             $today,
         ): array {
@@ -321,7 +326,8 @@ class Dashboard extends Page
                 : false;
 
             $commitmentRate = 0.0;
-            $firstStart = $firstStartByUser[$user->id] ?? null;
+            $khatmaStats = $khatmaStatsByUser->get($user->id);
+            $firstStart = $khatmaStats?->first_start;
 
             if ($firstStart) {
                 $start = Carbon::parse($firstStart)->startOfDay();
@@ -339,7 +345,7 @@ class Dashboard extends Page
                 'email' => (string) $user->email,
                 'avatar' => mb_strtoupper(mb_substr((string) $user->name, 0, 1)),
                 'joined_label' => $this->formatJoinedLabel($user->created_at),
-                'khatmas_count' => (int) ($khatmasByUser[$user->id] ?? 0),
+                'khatmas_count' => (int) ($khatmaStats?->total ?? 0),
                 'status' => $isActive ? 'active' : 'idle',
                 'status_label' => $isActive ? 'نشط' : 'خامل',
                 'commitment_rate' => $commitmentRate,
@@ -438,6 +444,8 @@ class Dashboard extends Page
     public function getHealthMetrics(): array
     {
         $today = Carbon::today();
+        $todayDate = $today->toDateString();
+        $tomorrowDate = $today->copy()->addDay()->toDateString();
         $highestStreak = $this->calculateHighestStreak();
         $averageCommitment = $this->calculateAverageCommitmentRate();
 
@@ -446,7 +454,8 @@ class Dashboard extends Page
             ->count();
         $khatmasDoneToday = (int) DailyRecord::query()
             ->where('is_completed', true)
-            ->whereDate('date', $today)
+            ->where('date', '>=', $todayDate)
+            ->where('date', '<', $tomorrowDate)
             ->distinct('khatma_id')
             ->count('khatma_id');
 
@@ -454,16 +463,12 @@ class Dashboard extends Page
             ? round(min(($khatmasDoneToday / $activeKhatmas) * 100, 100), 1)
             : 0;
 
-        $avgUserAgeDays = (float) User::query()
-            ->get(['created_at'])
-            ->avg(fn (User $user): int => $user->created_at?->diffInDays($today) ?? 0);
-        $avgUserAgeDays = round($avgUserAgeDays, 1);
+        $avgUserAgeDays = $this->calculateAverageUserAgeDays($today);
 
         $dueThisWeek = (int) Khatma::query()
             ->where('status', KhatmaStatus::Active)
             ->whereNotNull('expected_end_date')
-            ->whereDate('expected_end_date', '>=', $today)
-            ->whereDate('expected_end_date', '<=', $today->copy()->addDays(6))
+            ->whereBetween('expected_end_date', [$todayDate, $today->copy()->addDays(6)->toDateString()])
             ->count();
 
         return [
@@ -508,10 +513,11 @@ class Dashboard extends Page
     public function getTopActiveUsers(): array
     {
         $start30 = Carbon::today()->subDays(29);
+        $start30Date = $start30->toDateString();
 
         return DailyRecord::query()
             ->where('is_completed', true)
-            ->whereDate('date', '>=', $start30)
+            ->where('date', '>=', $start30Date)
             ->join('users', 'users.id', '=', 'daily_records.user_id')
             ->selectRaw('users.id, users.name, users.email, SUM(daily_records.pages_count) as pages_total, COUNT(DISTINCT daily_records.date) as active_days')
             ->groupBy('users.id', 'users.name', 'users.email')
@@ -544,13 +550,38 @@ class Dashboard extends Page
         string $column,
         ?Carbon $startDate,
         ?Carbon $endDate,
+        bool $dateOnly = false,
     ): Builder {
+        if ($dateOnly && $startDate && $endDate) {
+            $query->where($column, '>=', $startDate->toDateString())
+                ->where($column, '<', $endDate->copy()->addDay()->toDateString());
+
+            return $query;
+        }
+
+        if ($startDate && $endDate) {
+            $query->whereBetween($column, [
+                $dateOnly ? $startDate->toDateString() : $startDate->copy()->startOfDay(),
+                $dateOnly ? $endDate->toDateString() : $endDate->copy()->endOfDay(),
+            ]);
+
+            return $query;
+        }
+
         if ($startDate) {
-            $query->whereDate($column, '>=', $startDate);
+            $query->where(
+                $column,
+                '>=',
+                $dateOnly ? $startDate->toDateString() : $startDate->copy()->startOfDay(),
+            );
         }
 
         if ($endDate) {
-            $query->whereDate($column, '<=', $endDate);
+            $query->where(
+                $column,
+                $dateOnly ? '<' : '<=',
+                $dateOnly ? $endDate->copy()->addDay()->toDateString() : $endDate->copy()->endOfDay(),
+            );
         }
 
         return $query;
@@ -559,22 +590,26 @@ class Dashboard extends Page
     private function calculateHighestStreak(): int
     {
         $today = Carbon::today();
+        $windowStart = $today->copy()->subDays(180);
+        $datesByUser = [];
 
-        $records = DailyRecord::query()
+        DailyRecord::query()
             ->where('is_completed', true)
-            ->whereDate('date', '>=', $today->copy()->subDays(180))
-            ->get(['user_id', 'date'])
-            ->groupBy('user_id');
+            ->where('date', '>=', $windowStart->toDateString())
+            ->select(['user_id', 'date'])
+            ->distinct()
+            ->orderBy('user_id')
+            ->orderBy('date')
+            ->cursor()
+            ->each(function (DailyRecord $record) use (&$datesByUser): void {
+                $userId = (int) $record->user_id;
+                $dateKey = Carbon::parse($record->date)->toDateString();
+                $datesByUser[$userId][$dateKey] = true;
+            });
 
         $highest = 0;
 
-        foreach ($records as $userRecords) {
-            $dates = $userRecords
-                ->pluck('date')
-                ->map(fn ($date): string => Carbon::parse($date)->toDateString())
-                ->unique()
-                ->flip();
-
+        foreach ($datesByUser as $dates) {
             $current = $today->copy();
             if (! isset($dates[$current->toDateString()])) {
                 $current->subDay();
@@ -638,6 +673,26 @@ class Dashboard extends Page
         }
 
         return round(array_sum($rates) / count($rates), 1);
+    }
+
+    private function calculateAverageUserAgeDays(Carbon $today): float
+    {
+        $todayDate = $today->toDateString();
+        $driver = DB::connection()->getDriverName();
+
+        $avgDays = match ($driver) {
+            'mysql', 'mariadb' => (float) (User::query()
+                ->selectRaw('AVG(DATEDIFF(?, DATE(created_at))) as avg_days', [$todayDate])
+                ->value('avg_days') ?? 0),
+            'sqlite' => (float) (User::query()
+                ->selectRaw('AVG(JULIANDAY(?) - JULIANDAY(DATE(created_at))) as avg_days', [$todayDate])
+                ->value('avg_days') ?? 0),
+            default => (float) (User::query()
+                ->get(['created_at'])
+                ->avg(fn (User $user): int => $user->created_at?->diffInDays($today) ?? 0) ?? 0),
+        };
+
+        return round(max($avgDays, 0), 1);
     }
 
     private function formatRelativeTime(Carbon $timestamp): string

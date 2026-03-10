@@ -2,6 +2,7 @@
 
 namespace Tests\Unit;
 
+use App\Models\AppSetting;
 use App\Models\User;
 use App\Support\AppSettings;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -50,5 +51,34 @@ class AppSettingsTest extends TestCase
 
         $this->assertTrue($user->default_auto_compensate_missed_days);
         $this->assertSame(13, $user->default_daily_pages);
+    }
+
+    public function test_invalid_json_setting_falls_back_to_default_value(): void
+    {
+        AppSetting::query()->create([
+            'key' => AppSettings::KEY_LANDING_X_URL,
+            'value' => '{"invalid_json"',
+            'type' => 'json',
+        ]);
+
+        $this->assertSame(
+            AppSettings::DEFAULTS[AppSettings::KEY_LANDING_X_URL],
+            AppSettings::get(AppSettings::KEY_LANDING_X_URL),
+        );
+    }
+
+    public function test_get_many_uses_fallbacks_when_json_is_invalid(): void
+    {
+        AppSetting::query()->create([
+            'key' => AppSettings::KEY_LANDING_CONTACT_EMAIL,
+            'value' => '{"oops"',
+            'type' => 'json',
+        ]);
+
+        $values = AppSettings::getMany([
+            AppSettings::KEY_LANDING_CONTACT_EMAIL => 'fallback@example.com',
+        ]);
+
+        $this->assertSame('fallback@example.com', $values[AppSettings::KEY_LANDING_CONTACT_EMAIL]);
     }
 }

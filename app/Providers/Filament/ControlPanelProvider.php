@@ -9,6 +9,7 @@ use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Panel;
 use Filament\PanelProvider;
+use Filament\View\PanelsRenderHook;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
@@ -27,6 +28,16 @@ class ControlPanelProvider extends PanelProvider
             ->passwordReset()
             ->emailVerification(isRequired: true)
             ->viteTheme('resources/css/filament/admin/theme.css')
+            ->renderHook(
+                PanelsRenderHook::AUTH_PASSWORD_RESET_REQUEST_FORM_AFTER,
+                fn (): string => view('filament.auth.back-to-home')->render(),
+            )
+            ->renderHook(
+                PanelsRenderHook::SIMPLE_PAGE_END,
+                fn (): string => request()->routeIs('filament.control.auth.email-verification.prompt')
+                    ? view('filament.auth.back-to-home')->render()
+                    : '',
+            )
             ->brandName('ختمة | مركز التحكم')
             ->brandLogo(asset('images/brand/khatma-logo-light.svg'))
             ->darkModeBrandLogo(asset('images/brand/khatma-logo-dark.svg'))

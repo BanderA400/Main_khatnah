@@ -29,7 +29,7 @@ class AdminPanelProvider extends PanelProvider
             ->login()
             ->registration()
             ->passwordReset()
-            ->emailVerification(isRequired: true)
+            ->emailVerification(isRequired: false)
             ->viteTheme('resources/css/filament/admin/theme.css')
             ->renderHook(
                 PanelsRenderHook::AUTH_LOGIN_FORM_AFTER,
@@ -38,6 +38,16 @@ class AdminPanelProvider extends PanelProvider
             ->renderHook(
                 PanelsRenderHook::AUTH_REGISTER_FORM_AFTER,
                 fn (): string => view('filament.auth.back-to-home')->render(),
+            )
+            ->renderHook(
+                PanelsRenderHook::AUTH_PASSWORD_RESET_REQUEST_FORM_AFTER,
+                fn (): string => view('filament.auth.back-to-home')->render(),
+            )
+            ->renderHook(
+                PanelsRenderHook::SIMPLE_PAGE_END,
+                fn (): string => request()->routeIs('filament.admin.auth.email-verification.prompt')
+                    ? view('filament.auth.back-to-home')->render()
+                    : '',
             )
 
             // === الهوية البصرية ===

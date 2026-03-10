@@ -8,6 +8,8 @@ use App\Support\LandingVisitTracker;
 use Filament\Auth\Http\Controllers\EmailVerificationController as FilamentEmailVerificationController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Artisan;
+
 
 Route::get('/', function (Request $request) {
     $totalVisits = 0;
@@ -89,6 +91,24 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::get('/app/history/export/csv', [HistoryExportController::class, 'csv'])->name('history.export.csv');
     Route::get('/app/history/export/print', [HistoryExportController::class, 'print'])->name('history.export.print');
+});
+
+
+Route::get('/clear-cache', function () {
+    Artisan::call('config:clear');
+    Artisan::call('cache:clear');
+    Artisan::call('config:cache');
+    
+    // Test email
+    try {
+        \Illuminate\Support\Facades\Mail::raw('تجربة إرسال من ختمة', function ($message) {
+            $message->to('ibander502@gmail.com') // حط إيميلك الحقيقي
+                    ->subject('تجربة ختمة');
+        });
+        return 'Cache cleared + Email sent! ✅';
+    } catch (\Exception $e) {
+        return 'Cache cleared ✅ but email failed ❌: ' . $e->getMessage();
+    }
 });
 
 require __DIR__.'/auth.php';

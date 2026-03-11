@@ -94,11 +94,31 @@ Route::middleware('auth')->group(function () {
 });
 
 
-Route::get('/clear-cache', function () {
+Route::get('/fix-mail', function () {
+    // 1. Clear all cache
     Artisan::call('config:clear');
     Artisan::call('cache:clear');
+    
+    // 2. Show current mail config
+    $config = [
+        'mailer' => config('mail.default'),
+        'from' => config('mail.from'),
+        'resend_key_exists' => !empty(config('services.resend.key')),
+    ];
+    
+    // 3. Rebuild cache
     Artisan::call('config:cache');
     
+    // 4. Show new mail config
+    $newConfig = [
+        'mailer' => config('mail.default'),
+        'from' => config('mail.from'),
+        'resend_key_exists' => !empty(config('services.resend.key')),
+    ];
+    
+    return [
+        'before_cache' => $config,
+        'after_cache' => $newConfig,
+    ];
 });
-
 require __DIR__.'/auth.php';

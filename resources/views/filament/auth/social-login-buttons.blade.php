@@ -11,7 +11,7 @@
 
     <div class="khatma-social-auth-card">
         <p class="khatma-social-auth-title">
-            {{ $isRegisterContext ? 'أنشئ حسابك بسرعة عبر' : 'سجّل دخولك بسرعة عبر' }}
+            {{ $isRegisterContext ? 'أنشئ حسابك عبر' : 'سجل دخولك عبر' }}
         </p>
 
         <div class="khatma-social-auth-actions">

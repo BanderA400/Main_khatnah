@@ -26,7 +26,7 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('app')
-            ->login()
+            ->login(\App\Filament\Pages\Auth\Login::class)
             ->registration()
             ->passwordReset()
             ->emailVerification(isRequired: false)
@@ -34,8 +34,20 @@ class AdminPanelProvider extends PanelProvider
             ->databaseNotificationsPolling('30s')
             ->viteTheme('resources/css/filament/admin/theme.css')
             ->renderHook(
+                PanelsRenderHook::AUTH_LOGIN_FORM_BEFORE,
+                fn (): string => view('filament.auth.social-login-buttons', [
+                    'context' => 'login',
+                ])->render(),
+            )
+            ->renderHook(
                 PanelsRenderHook::AUTH_LOGIN_FORM_AFTER,
                 fn (): string => view('filament.auth.back-to-home')->render(),
+            )
+            ->renderHook(
+                PanelsRenderHook::AUTH_REGISTER_FORM_BEFORE,
+                fn (): string => view('filament.auth.social-login-buttons', [
+                    'context' => 'register',
+                ])->render(),
             )
             ->renderHook(
                 PanelsRenderHook::AUTH_REGISTER_FORM_AFTER,

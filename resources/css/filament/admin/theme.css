@@ -170,6 +170,101 @@
     text-align: right;
 }
 
+.khatma-social-auth-wrap {
+    margin-bottom: 0.85rem;
+}
+
+.khatma-social-auth-alert {
+    margin-bottom: 0.75rem;
+    border: 1px solid #fecaca;
+    border-radius: 0.75rem;
+    background: #fef2f2;
+    color: #b91c1c;
+    font-size: 0.875rem;
+    padding: 0.65rem 0.85rem;
+    text-align: center;
+}
+
+.khatma-social-auth-card {
+    border: 1px solid var(--khatma-border);
+    border-radius: 0.9rem;
+    padding: 0.62rem;
+    background:
+        linear-gradient(135deg, rgba(109, 40, 217, 0.07), rgba(16, 185, 129, 0.06)),
+        var(--khatma-surface);
+    box-shadow: 0 10px 24px rgba(45, 25, 92, 0.08);
+}
+
+.khatma-social-auth-title {
+    margin: 0;
+    color: var(--khatma-title);
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-align: center;
+}
+
+.khatma-social-auth-actions {
+    display: grid;
+    gap: 0.36rem;
+    margin-top: 0.48rem;
+}
+
+.khatma-social-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.36rem;
+    width: 100%;
+    border-radius: 0.68rem;
+    border: 1px solid var(--khatma-border);
+    background: rgba(255, 255, 255, 0.9);
+    padding: 0.44rem 0.68rem;
+    text-decoration: none;
+    transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease, background-color 160ms ease;
+}
+
+.khatma-social-btn:hover {
+    transform: translateY(-1px);
+    border-color: rgba(109, 40, 217, 0.42);
+    background: #fff;
+    box-shadow: 0 10px 20px rgba(45, 25, 92, 0.1);
+}
+
+.khatma-social-btn:focus-visible {
+    outline: 2px solid rgba(109, 40, 217, 0.36);
+    outline-offset: 2px;
+}
+
+.khatma-social-btn-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.25rem;
+    height: 1.25rem;
+    flex: 0 0 1.25rem;
+}
+
+.khatma-social-btn-icon svg {
+    width: 1.25rem;
+    height: 1.25rem;
+    display: block;
+}
+
+.khatma-social-icon-x {
+    width: 1.1rem !important;
+    height: 1.1rem !important;
+}
+
+.khatma-social-btn-x .khatma-social-btn-icon svg {
+    fill: #111827;
+}
+
+.khatma-social-btn-label {
+    color: #374151;
+    font-size: 0.76rem;
+    font-weight: 600;
+}
+
 .khatma-auth-home-link-wrap {
     margin-top: 1rem;
     text-align: center;
@@ -199,4 +294,35 @@
 
 .dark .khatma-auth-home-link {
     background: rgba(34, 31, 45, 0.82);
+}
+
+.dark .khatma-social-auth-alert {
+    border-color: rgba(248, 113, 113, 0.45);
+    background: rgba(127, 29, 29, 0.28);
+    color: #fecaca;
+}
+
+.dark .khatma-social-auth-card {
+    background:
+        linear-gradient(135deg, rgba(109, 40, 217, 0.19), rgba(16, 185, 129, 0.15)),
+        var(--khatma-surface);
+    box-shadow: 0 14px 30px rgba(0, 0, 0, 0.3);
+}
+
+.dark .khatma-social-btn {
+    background: rgba(17, 24, 39, 0.65);
+    border-color: rgba(139, 146, 165, 0.4);
+}
+
+.dark .khatma-social-btn:hover {
+    background: rgba(31, 41, 55, 0.8);
+    border-color: rgba(201, 160, 245, 0.44);
+}
+
+.dark .khatma-social-btn-label {
+    color: #e5e7eb;
+}
+
+.dark .khatma-social-btn-x .khatma-social-btn-icon svg {
+    fill: #f3f4f6;
 }

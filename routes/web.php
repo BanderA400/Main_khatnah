@@ -8,6 +8,7 @@ use App\Support\LandingVisitTracker;
 use Filament\Auth\Http\Controllers\EmailVerificationController as FilamentEmailVerificationController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\SocialAuthController;
 
 
 Route::get('/', function (Request $request) {
@@ -90,6 +91,16 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::get('/app/history/export/csv', [HistoryExportController::class, 'csv'])->name('history.export.csv');
     Route::get('/app/history/export/print', [HistoryExportController::class, 'print'])->name('history.export.print');
+});
+
+Route::middleware(['guest', 'throttle:30,1'])->group(function (): void {
+    Route::get('/auth/{provider}', [SocialAuthController::class, 'redirect'])
+        ->whereIn('provider', ['google', 'twitter'])
+        ->name('social.redirect');
+
+    Route::get('/auth/{provider}/callback', [SocialAuthController::class, 'callback'])
+        ->whereIn('provider', ['google', 'twitter'])
+        ->name('social.callback');
 });
 
 require __DIR__.'/auth.php';
